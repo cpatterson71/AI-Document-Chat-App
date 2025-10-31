@@ -30,19 +30,28 @@ def main():
     # Load document store and initialize pipeline on startup
     if "document_store" not in st.session_state:
         st.session_state.document_store = load_document_store()
-        if st.session_state.document_store.count_documents() > 0:
-            st.session_state.rag_pipeline = initialize_pipeline(st.session_state.document_store)
+        # if st.session_state.document_store.count_documents() > 0:
+        #     st.session_state.rag_pipeline = initialize_pipeline(st.session_state.document_store)
 
     # Sidebar for document management
     with st.sidebar:
-        pdf_dir = st.text_input("Enter the path to your PDF documents", key="pdf_dir_input", value=st.session_state.get("indexed_dir", ""))
+        uploaded_files = st.file_uploader("Upload your PDF documents", type="pdf", accept_multiple_files=True)
         
         if st.button("Index Documents"):
-            if not os.path.isdir(pdf_dir):
-                st.error("Invalid directory path. Please try again.")
-            else:
-                file_paths = [os.path.join(pdf_dir, f) for f in os.listdir(pdf_dir) if f.endswith(".pdf")]
-                
+            if uploaded_files:
+                # We need to save the uploaded files to a temporary directory
+                # because some of the processing functions expect file paths.
+                temp_dir = "temp_pdf_files"
+                if not os.path.exists(temp_dir):
+                    os.makedirs(temp_dir)
+
+                file_paths = []
+                for uploaded_file in uploaded_files:
+                    file_path = os.path.join(temp_dir, uploaded_file.name)
+                    with open(file_path, "wb") as f:
+                        f.write(uploaded_file.getbuffer())
+                    file_paths.append(file_path)
+
                 # Placeholders for temporary progress indicators
                 counter_placeholder = st.empty()
                 progress_bar_placeholder = st.empty()
@@ -71,7 +80,9 @@ def main():
                 st.session_state.rag_pipeline = initialize_pipeline(st.session_state.document_store)
                 
                 st.success("Indexing complete!")
-                st.session_state.indexed_dir = pdf_dir
+                st.session_state.indexed_dir = "Uploaded files" # Update indexed_dir to reflect file upload
+            else:
+                st.error("Please upload at least one PDF document.")
 
         if st.button("Clear Chat History"):
             st.session_state.messages = []
