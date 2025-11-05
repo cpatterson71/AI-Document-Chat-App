@@ -31,7 +31,7 @@ def process_single_pdf(file_path):
     """Processes a single PDF file, performs OCR, and returns a Document object."""
     try:
         print(f"Processing file: {file_path}")
-        client = vision.ImageAnnotatorClient.from_service_account_file(r'C:\Users\carlp\OneDrive\Desktop\AI_Projects\AI_Document_Chat\Document_Store\haystack-ai-image-7d30c6a4401d.json')
+        client = vision.ImageAnnotatorClient()
         images = convert_from_path(file_path)
         full_text = ""
         for i, image in enumerate(images):
